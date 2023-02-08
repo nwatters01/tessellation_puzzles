@@ -6,12 +6,12 @@ import numpy as np
 
 
 def exponential_dilation_tau_fn(baseline=0., eccentricity_tau=0.):
-    """Dilation magnitude sampled from a exponential distribution of radius.
+    """Dilation magnitude sampled from an exponential distribution of radius.
 
     Args:
         baseline: Scalar. Value of dilation magnitude at radius 0.
         eccentricity_tau: Scalar. Scale of the exponential function of radius
-            that the dilation amgnitude is sampled from.
+            that the dilation magnitude is sampled from.
 
     Returns:
         _get_dilation_tau: Function taking vector of hole eccentricities and

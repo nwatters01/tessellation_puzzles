@@ -177,7 +177,7 @@ class Degree3464(base_puzzle.BasePuzzle):
     def _setup_hole_faces(self):
         """Create tessellation hole faces.
 
-        Hole faces are faces that are ommitted from the puzzle, left as holes.
+        Hole faces are faces that are omitted from the puzzle, left as holes.
         
         Returns:
             List of tuples of integers. Each tuple contains indices of vertices
