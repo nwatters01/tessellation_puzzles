@@ -23,8 +23,16 @@ explore new tessellations, add files to `tessellations/`.
 
 ## Examples
 
-Here is a puzzle generated from config `configs/degree_3_4_6_4_small_v0.py`:
+Here is a puzzle generated from config `configs/degree_3_4_6_4_tiny_v0.py` with
+edge-warping:
+
+<img src="readme_visuals/puzzle_tiny_v0.png" width="500">
+
+Here is a puzzle generated from config `configs/degree_3_4_6_4_small_v0.py`
+before edge-warping was added:
+
 <img src="readme_visuals/puzzle_small_v0.png" width="500">
 
 Here is a puzzle generated from config `configs/degree_3_4_6_4_medium_v0.py`:
+
 <img src="readme_visuals/puzzle_medium_v0.png" width="500">
