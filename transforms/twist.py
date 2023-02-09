@@ -40,7 +40,7 @@ class Twist(base_transform.BaseTransform):
         self._basin_tau_baseline = basin_tau_baseline
 
         self._num_twists = self._get_num_twists()
-        logging.info(f'num_twists = {self._num_twists}')
+        logging.info(f'    num_twists = {self._num_twists}')
         self._twist_centers = self._get_twist_centers()
         self._twist_angles = self._get_twist_angles()
         self._twist_basin_taus = self._get_twist_basin_taus()

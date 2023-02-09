@@ -11,7 +11,11 @@ import sys
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 # Point to a config in `configs/` directory
-_CONFIG = '.degree_3_4_6_4_small_v0'
+_CONFIG = '.degree_3_4_6_4_tiny_v0'
+
+# Whether to shade puzzle faces. This is pretty time-consuming in its current
+# implementation, so for speed you may want to turn it off.
+_RENDER_FACES = True
 
 
 def _plot_puzzle(puzzle):
@@ -19,38 +23,30 @@ def _plot_puzzle(puzzle):
     logging.info('Plotting puzzle')
 
     _, ax = plt.subplots(figsize=(9, 9))
+    
+    # Render faces in gray, if necessary
+    if _RENDER_FACES:
+        logging.info('    Rendering faces')
+        faces = puzzle.faces
+        for f in faces:
+            vertices = puzzle._face_to_mesh_polygon(f, stride=5)
+            polygon = patches.Polygon(vertices, closed=True)
+            ax.add_collection(
+                collections.PatchCollection([polygon], color='0.5'))
 
-    # Render faces in gray
-    logging.info('    Rendering faces')
-    faces = puzzle.faces
-    for f in faces:
-        vertices = puzzle._face_to_mesh_polygon(f)
-        polygon = patches.Polygon(vertices, closed=True)
-        ax.add_collection(collections.PatchCollection([polygon], color='0.5'))
-
-    # Plot edges in blue
+    # Render edges in pink
     logging.info('    Rendering edges')
-    flat_mesh = puzzle.flatten_mesh()
-    plt.scatter(flat_mesh[:, 0], flat_mesh[:, 1], c='b', s=5)
+    for edge_points in puzzle.mesh.values():
+        ax.plot(edge_points[:, 0], edge_points[:, 1], c='pink')
 
-    # Plot lines in pink
-    tree = scipy.spatial.KDTree(flat_mesh)  # use nearest neighbor based on euclidean distance
-    for point in flat_mesh:
-        dists, indices = tree.query(point, k=3, distance_upper_bound=.9)  # some magic numbers that were manually tuned
-        for i in range(len(indices)):
-            ith_neighbor_index = indices[i]
-            # returning N is the dumb way the kdtree indicates it hasn't found a neighbor
-            if ith_neighbor_index != len(flat_mesh):
-                ith_neighbor = flat_mesh[ith_neighbor_index]
-                plt.plot([ith_neighbor[0], point[0]], [ith_neighbor[1], point[1]], c='pink')
-
-    # Plot vertices in red
+    # Render vertices in red
     logging.info('    Rendering vertices')
     vertices = puzzle.vertices
-    plt.scatter(vertices[:, 0], vertices[:, 1], c='r', s=10)
+    ax.scatter(vertices[:, 0], vertices[:, 1], c='r', s=5)
 
     # Display plot
     logging.info('    Displaying figure')
+
     plt.show()
 
 

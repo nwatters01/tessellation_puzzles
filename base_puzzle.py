@@ -159,7 +159,7 @@ class BasePuzzle(abc.ABC):
         corners = tuple([corners[i] for i in ordering])
         return corners
 
-    def _face_to_mesh_polygon(self, face):
+    def _face_to_mesh_polygon(self, face, stride=1):
         """Convert face to a polygon with mesh edges.
         
         For rendering, we want to fill faces of the puzzle. This requires
@@ -168,6 +168,10 @@ class BasePuzzle(abc.ABC):
         
         Args:
             face: Tuple of integer vertex indices.
+            stride: Int. Stride for sub-sampling edge points. Get most accurate
+                polygon mesh with stride 1, but rendering faces can be slow with
+                high resolution, so you may want higher stride for speed of
+                rendering.
 
         Returns:
             polygon: Size [_, 2] float array of polygon points outlining the
@@ -188,7 +192,7 @@ class BasePuzzle(abc.ABC):
             if not correct_orientation:
                 edge_points = edge_points[::-1]
             
-            polygon.append(edge_points)
+            polygon.append(edge_points[::stride])
         
         polygon = np.concatenate(polygon, axis=0)
         return polygon

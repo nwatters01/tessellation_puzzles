@@ -12,8 +12,8 @@ from transforms import twist
 def get_puzzle():
     # Initialize puzzle as a tessellation
     puzzle = degree_3_4_6_4.Degree3464(
-        radius=15, mesh_interval=0.025, hex_fill_prob_tau=0.08,
-        hex_fill_prob_baseline=-0.03)
+        radius=8, mesh_interval=0.025, hex_fill_prob_tau=0.3,
+        hex_fill_prob_baseline=-0.08)
 
     # Smooth holes
     smooth_holes.smooth_holes(puzzle)
@@ -34,7 +34,7 @@ def get_puzzle():
 
     # Dilate holes
     dilation_tau_fn = dilate_holes.normal_dilation_tau_fn(
-        loc_intercept=-1., loc_slope=0.3, scale_slope=0.06,
+        loc_intercept=-2., loc_slope=0.65, scale_slope=0.06,
         min_dilation_tau=-1.)
     dilate_holes.DilateHoles(dilation_tau_fn, puzzle)(puzzle)
 
