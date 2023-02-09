@@ -33,21 +33,22 @@ import time
 _MAX_TRIES = int(1e3)
 
 
-def get_sample_curvature_magnitude(min_curvature=0.065, max_curvature=0.1):
+def get_sample_curvature_magnitude(min_curvature=9. * np.pi,
+                                   max_curvature=13. * np.pi):
     """Get a sampler function that returns a curvature magnitude.
     
     Args:
-        min_curvature: Float. Minimum curvature, in radians per vertex.
-        max_curvature: Float. Maximum curvature, in radians per vertex.
+        min_curvature: Float. Minimum curvature, in radians per unit space.
+        max_curvature: Float. Maximum curvature, in radians per unit space.
 
     Returns:
-        Callable returning a float curvature in radians per vertex.
+        Callable returning a float curvature in radians per unit space.
     """
     return lambda: np.random.uniform(min_curvature, max_curvature)
 
 
 def get_sample_curve_length(min_integral=1.15 * np.pi,
-                              max_integral=1.3 * np.pi):
+                            max_integral=1.3 * np.pi):
     """Get a sampler function that returns a length of a curve.
 
     The length of a curve is the number of vertices in the curve, and is sampled
@@ -60,29 +61,29 @@ def get_sample_curve_length(min_integral=1.15 * np.pi,
 
     Returns:
         _sample_curve_length: Function taking in curvature magnitude and
-            returning a integer number of vertices in the curve.
+            returning a float length of the curve.
     """
     def _sample_curve_length(curvature_magnitude):
-        min_length = int(np.round(min_integral / curvature_magnitude))
-        max_length = int(np.round(max_integral / curvature_magnitude))
-        return np.random.randint(min_length, max_length + 1)
+        min_length = min_integral / curvature_magnitude
+        max_length = max_integral / curvature_magnitude
+        return np.random.uniform(min_length, max_length)
     return _sample_curve_length
 
 
-def get_sample_straight_length(min_length=12, max_length=20):
+def get_sample_straight_length(min_length=0.02, max_length=0.04):
     """Get a sampler function that returns a length for a straight segment.
     
     Args:
-        min_length: Minimum length, in number of vertices.
-        max_length: Maximum length, in number of vertices.
+        min_length: Minimum length, in units of space.
+        max_length: Maximum length, in units of space.
 
     Returns:
-        Callable returning an int number of vertices per straight segment.
+        Callable returning a float length of a straight segment.
     """
-    return lambda: np.random.randint(min_length, max_length + 1)
+    return lambda: np.random.uniform(min_length, max_length)
 
 
-def get_sample_noise(kernel_half_width=20, noise_amplitude=0.04):
+def get_sample_noise(kernel_half_width=20, noise_amplitude=30.):
     """Get a sampler function that returns noise to add to a curvature vector.
 
     The noise is a smoothed and centered Brownian motion vector.
@@ -159,7 +160,7 @@ class Curvature():
                  sample_curve_length,
                  sample_straight_length,
                  sample_noise,
-                 path_length=400):
+                 resolution=500):
         """Constructor.
         
         Args:
@@ -171,50 +172,52 @@ class Curvature():
                 See get_sample_straight_length() above.
             sample_noise: Function taking in segment length and returning noise
                 to add to the segment. See get_sample_noise() above.
-            path_length: Int. Length of path to return.
+            resolution: Int. Number of vertices in a path.
         """
         self._sample_straight_length = sample_straight_length
         self._sample_curve_length = sample_curve_length
         self._sample_curvature_magnitude = sample_curvature_magnitude
         self._sample_noise = sample_noise
-        self._path_length = path_length
+        self._resolution = resolution
 
         # Estimate path length envelope by sampling a bunch of curve lengths and
         # straight lengths. Path length envelope is the length of a path to
-        # generate before trimming it down to path_length. We generate a longer
+        # generate before trimming it down to resolution. We generate a longer
         # path first to avoid biased sampling of which phase of the curve we
         # start with. In other words, so that we sometimes start by curving to
         # the right, sometimes by curving to the left, and sometimes by going
         # straight.
-        max_curve_length = np.max([
+        max_curve_length = resolution * np.max([
             sample_curve_length(sample_curvature_magnitude())
             for _ in range(100)
         ])
-        max_straight_length = np.max(
+        max_straight_length = resolution * np.max(
             [sample_straight_length() for _ in range(100)])
         buffer_length = int(2 * (max_curve_length + max_straight_length))
-        self._path_length_envelope = path_length + buffer_length
+        self._path_length_envelope = resolution + buffer_length
 
     def _sample_curve(self):
         """Sample curvatures for a curved segment."""
         curvature_magnitude = self._sample_curvature_magnitude()
         curve_length = self._sample_curve_length(curvature_magnitude)
-        curve = curvature_magnitude * np.ones(curve_length)
-        curve += self._sample_noise(curve_length)
+        curve_num_points = int(np.round(self._resolution * curve_length))
+        curve = curvature_magnitude * np.ones(curve_num_points)
+        curve += self._sample_noise(curve_num_points)
         return curve
 
     def _sample_straight(self):
         """Sample curvatures for a straight segment."""
         straight_length = self._sample_straight_length()
-        straight = np.zeros(straight_length)
-        straight += self._sample_noise(straight_length)
+        straight_num_points = int(np.round(self._resolution * straight_length))
+        straight = np.zeros(straight_num_points)
+        straight += self._sample_noise(straight_num_points)
         return straight
     
     def __call__(self):
-        """Sample a curvature vector of length self._path_length.
+        """Sample a curvature vector of length self._resolution.
         
         Returns:
-            curvature: Float array of curvatures of size [self._path_length].
+            curvature: Float array of curvatures of size [self._resolution].
         """
         phase = 0
         total_length = 0
@@ -239,14 +242,14 @@ class Curvature():
         # Sub-sample a random interval
         curvature = np.concatenate(segments)
         start_ind = np.random.randint(
-            self._path_length_envelope - self._path_length)
-        curvature = curvature[start_ind: start_ind + self._path_length]
+            self._path_length_envelope - self._resolution)
+        curvature = curvature[start_ind: start_ind + self._resolution]
         
         return curvature
 
     @property
-    def path_length(self):
-        return self._path_length
+    def resolution(self):
+        return self._resolution
 
 
 class WarpedPath():
@@ -265,7 +268,7 @@ class WarpedPath():
     def __init__(self,
                  curvature_object,
                  flattening_fn,
-                 path_squishing_factor=0.65,
+                 path_squishing_factor=0.75,
                  self_intersecting_thresh=0.05,
                  self_intersecting_stride=2):
         """Constructor.
@@ -295,12 +298,12 @@ class WarpedPath():
         self._path_squishing_factor = path_squishing_factor
         self._self_intersecting_stride = self_intersecting_stride
 
-        self._path_length = self._curvature_object.path_length
+        self._resolution = self._curvature_object.resolution
 
         # Compute matrix of path point index pairs to evaluate for
         # self-intersection
         linspace = np.linspace(
-            0., 1., self._path_length // self._self_intersecting_stride)
+            0., 1., self._resolution // self._self_intersecting_stride)
         nearby = np.abs(linspace[np.newaxis] - linspace[:, np.newaxis])
         self._to_eval_for_self_intersection = (
             nearby > 1.5 * self._self_intersecting_thresh)
@@ -319,7 +322,7 @@ class WarpedPath():
 
     def __call__(self, start, end):
         # Sample and integrate curvature to get a warped path
-        curvature = self._curvature_object()
+        curvature = self._curvature_object() / self._resolution
         thetas = np.cumsum(curvature)
         vectors = np.stack([np.sin(thetas), np.cos(thetas)], axis=1)
         path = np.cumsum(vectors, axis=0)
@@ -336,9 +339,6 @@ class WarpedPath():
         ])
         path = np.matmul(path, rotation_matrix)
 
-        # Squish path along the y-axis
-        path[:, 1] *= self._path_squishing_factor
-
         # Get straight path for weighted-average flattening
         straight_path = np.stack(
             [np.linspace(0., 1., path_length), np.zeros(path_length)], axis=1,
@@ -347,6 +347,9 @@ class WarpedPath():
         # Flatten endpoints by taking weighted average with straight_path
         mixing_weights = self._flattening_fn(path_length)[:, np.newaxis]
         path = mixing_weights * path + (1. - mixing_weights) * straight_path
+
+        # Squish path along the y-axis
+        path[:, 1] *= self._path_squishing_factor
 
         # Reject if curve comes close to self-intersecting
         if self._self_intersecting(path):
