@@ -23,7 +23,7 @@ def _num_vertices_to_rgb(n):
 
 def get_puzzle():
     # Initialize puzzle as a tessellation
-    colorscheme = colorscheme_lib.ColorByNumVertices(_num_vertices_to_rgb)
+    colorscheme = colorscheme_lib.ConcentricRings([c.value for c in colorscheme_lib.Color], 1.2)
     puzzle = degree_3_4_6_4.Degree3464(
         radius=8, mesh_interval=0.025, hex_fill_prob_tau=0.3,
         hex_fill_prob_baseline=-0.08, colorscheme=colorscheme)
