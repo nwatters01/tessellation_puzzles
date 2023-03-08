@@ -19,7 +19,8 @@ class Degree3464(base_puzzle.BasePuzzle):
                  radius,
                  hex_fill_prob_tau=0.,
                  hex_fill_prob_baseline=0.,
-                 mesh_interval=0.1):
+                 mesh_interval=0.1,
+                 colorscheme=None):
         """Constructor.
         
         Args:
@@ -44,7 +45,8 @@ class Degree3464(base_puzzle.BasePuzzle):
         logging.info('    Setting up hexagon centers')
         self._hexagon_centers = self._setup_hexagon_centers()
 
-        super(Degree3464, self).__init__(mesh_interval=mesh_interval)
+        super(Degree3464, self).__init__(
+            mesh_interval=mesh_interval, colorscheme=colorscheme)
         
     def _setup_hexagon_centers(self):
         """Get centers of the hexagons in the tessellation."""

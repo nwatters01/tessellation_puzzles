@@ -32,7 +32,7 @@ def _plot_puzzle(puzzle):
             vertices = puzzle._face_to_mesh_polygon(f, stride=5)
             polygon = patches.Polygon(vertices, closed=True)
             ax.add_collection(
-                collections.PatchCollection([polygon], color='0.5'))
+                collections.PatchCollection([polygon], color=puzzle.colors[f]))
 
     # Render edges in pink
     logging.info('    Rendering edges')

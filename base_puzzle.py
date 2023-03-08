@@ -3,12 +3,13 @@
 import abc
 import logging
 import numpy as np
+import colorschemes
 
 
 class BasePuzzle(abc.ABC):
     """Base puzzle class."""
 
-    def __init__(self, mesh_interval=0.1):
+    def __init__(self, mesh_interval=0.1, colorscheme=None):
         """Constructor.
         
         Args:
@@ -30,6 +31,11 @@ class BasePuzzle(abc.ABC):
         self._mesh = self._setup_mesh()
         logging.info('    Setting up holes')
         self._holes = self._setup_holes()
+        
+        if colorscheme is None:
+            # Uniform blue
+            colorscheme = colorschemes.Uniform([0., 0., 1.])
+        self._colors = colorscheme(self)
 
     @abc.abstractmethod
     def _setup_vertices(self):
@@ -220,3 +226,7 @@ class BasePuzzle(abc.ABC):
     @property
     def holes(self):
         return self._holes
+
+    @property
+    def colors(self):
+        return self._colors

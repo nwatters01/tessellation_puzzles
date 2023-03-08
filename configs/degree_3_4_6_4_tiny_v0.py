@@ -7,13 +7,26 @@ from transforms import radial_stretch
 from transforms import dilate_holes
 from transforms import edge_warping
 from transforms import twist
+import colorschemes as colorscheme_lib
+
+
+def _num_vertices_to_rgb(n):
+    if n == 3:
+        return (1., 0., 0.)
+    elif n == 4:
+        return (0., 1., 0.)
+    elif n == 6:
+        return (0., 0., 1.)
+    else:
+        raise ValueError(f'Invalid number of vertices {n}')
 
 
 def get_puzzle():
     # Initialize puzzle as a tessellation
+    colorscheme = colorscheme_lib.ColorByNumVertices(_num_vertices_to_rgb)
     puzzle = degree_3_4_6_4.Degree3464(
         radius=8, mesh_interval=0.025, hex_fill_prob_tau=0.3,
-        hex_fill_prob_baseline=-0.08)
+        hex_fill_prob_baseline=-0.08, colorscheme=colorscheme)
 
     # Smooth holes
     smooth_holes.smooth_holes(puzzle)
