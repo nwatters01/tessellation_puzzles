@@ -11,7 +11,8 @@ import sys
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 # Point to a config in `configs/` directory
-_CONFIG = '.degree_3_4_6_4_tiny_v0'
+# _CONFIG = '.degree_3_4_6_4_tiny_v0'
+_CONFIG = '.degree_3_4_6_4_small_v0'
 
 # Whether to shade puzzle faces. This is pretty time-consuming in its current
 # implementation, so for speed you may want to turn it off.
